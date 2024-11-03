@@ -55,8 +55,10 @@ add_action( 'init', 'wp_cyoa_character_builder_plugin_auto_update' );
 // Enqueue Styles
 function wp_character_builder_enqueue_styles() {
     wp_enqueue_style('character-builder-styles', plugin_dir_url(__FILE__) . 'character-builder.css');
+    wp_enqueue_style('wp-character-builder-block', plugin_dir_url(__FILE__) . 'character-builder.css');
 }
 add_action('wp_enqueue_scripts', 'wp_character_builder_enqueue_styles');
+add_action('enqueue_block_editor_assets', 'wp_character_builder_enqueue_styles');
 
 // Process the form submission to save the character data
 function wp_character_builder_process_character_form() {
@@ -141,7 +143,7 @@ function wp_character_builder_character_shortcode() {
 
     ob_start();
     ?>
-    <div class="character-builder-container">
+    <div class="character-builder-container wp-block-cyoa-character-builder">
         <?php echo $message; ?>
         <h2><?php echo $existing_character ? 'Edit Your Character' : 'Create Your Character'; ?></h2>
         <form method="POST" id="character-builder-form">
@@ -211,3 +213,23 @@ function wp_character_builder_character_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('cyoa_character_builder', 'wp_character_builder_character_shortcode');
+
+function wp_character_builder_register_block() {
+    register_block_type('cyoa/character-builder', array(
+        'editor_script' => 'wp-character-builder-block-editor',
+        'editor_style'  => 'wp-character-builder-block-editor',
+        'style'         => 'wp-character-builder-block',
+        'render_callback' => 'wp_character_builder_character_shortcode'
+    ));
+}
+add_action('init', 'wp_character_builder_register_block');
+
+function wp_character_builder_enqueue_block_editor_assets() {
+    wp_enqueue_script(
+        'wp-character-builder-block-editor',
+        plugins_url( 'block.js', __FILE__ ),
+        array( 'wp-blocks', 'wp-element' )
+    );
+}
+add_action( 'enqueue_block_editor_assets', 'wp_character_builder_enqueue_block_editor_assets' );
+
