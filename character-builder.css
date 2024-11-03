@@ -1,0 +1,78 @@
+.character-builder-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+
+.character-builder-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.character-builder-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.character-builder-container input[type="text"],
+.character-builder-container input[type="number"],
+.character-builder-container select,
+.character-builder-container textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.character-builder-container fieldset {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.character-builder-container fieldset legend {
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+.character-builder-container input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.character-builder-container .save-changes-button,
+.character-builder-container .reset-character-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #0073aa;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.character-builder-container .save-changes-button:hover,
+.character-builder-container .reset-character-button:hover {
+    background-color: #005177;
+}
+
+.character-builder-container .success {
+    color: green;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.character-builder-container .error {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+}
