@@ -52,6 +52,11 @@ function wp_cyoa_character_builder_plugin_auto_update() {
 }
 add_action( 'init', 'wp_cyoa_character_builder_plugin_auto_update' );
 
+require_once plugin_dir_path(__FILE__) . 'includes/class-character-profile.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-inventory-manager.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-state-manager.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-quest-manager.php';
+
 // Enqueue Styles
 function wp_character_builder_enqueue_styles() {
     wp_enqueue_style('character-builder-styles', plugin_dir_url(__FILE__) . 'character-builder.css');
