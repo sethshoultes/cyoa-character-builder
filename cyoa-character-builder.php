@@ -211,17 +211,32 @@ function wp_character_builder_character_shortcode() {
     </div>
     <?php
 
-   do_action('iasb_character_profile');
+    
     return ob_get_clean();
 }
 add_shortcode('cyoa_character_builder', 'wp_character_builder_character_shortcode');
 
 function wp_character_builder_register_block() {
+    if (!function_exists('register_block_type')) {
+        return;
+    }
+    wp_register_script(
+        'wp-character-builder-block-editor',
+        plugins_url('block.js', __FILE__),
+        array('wp-blocks', 'wp-element', 'wp-components', 'wp-editor'),
+        filemtime(plugin_dir_path(__FILE__) . 'block.js')
+    );
     register_block_type('cyoa/character-builder', array(
         'editor_script' => 'wp-character-builder-block-editor',
         'editor_style'  => 'wp-character-builder-block-editor',
         'style'         => 'wp-character-builder-block',
         'render_callback' => 'wp_character_builder_character_shortcode'
+    ));
+    register_block_type('cyoa/character-profile', array(
+        'editor_script' => 'wp-character-builder-block-editor',
+        'editor_style'  => 'wp-character-builder-block-editor',
+        'style'         => 'wp-character-builder-block',
+        'render_callback' => 'wp_character_builder_display_profile_shortcode'
     ));
 }
 add_action('init', 'wp_character_builder_register_block');
@@ -311,7 +326,10 @@ function wp_character_builder_display_profile_shortcode() {
         <p><?php echo nl2br(esc_html($character['Backstory'])); ?></p>
     </div>
     <?php
-    
-    return ob_get_clean();
+    do_action('iasb_character_profile');
+    $output = ob_get_clean();
+
+    // Wrap the output in a div with a class for styling
+    return '<div class="wp-block-cyoa-character-profile">' . $output . '</div>';
 }
 add_shortcode('cyoa_character_profile', 'wp_character_builder_display_profile_shortcode');

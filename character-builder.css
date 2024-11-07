@@ -102,3 +102,90 @@
     font-style: italic;
     color: #666;
 }
+
+/* Character Profile Block Styles */
+.wp-block-cyoa-character-profile {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f0f8ff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.wp-block-cyoa-character-profile h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0073aa;
+}
+
+.wp-block-cyoa-character-profile p {
+    margin-bottom: 10px;
+}
+
+.wp-block-cyoa-character-profile strong {
+    font-weight: bold;
+    color: #333;
+}
+
+.wp-block-cyoa-character-profile ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.wp-block-cyoa-character-profile ul li {
+    margin-bottom: 5px;
+}
+
+.wp-block-cyoa-character-profile .character-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.wp-block-cyoa-character-profile .stat-item {
+    background-color: #e0f0ff;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.wp-block-cyoa-character-profile .stat-item strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.wp-block-cyoa-character-profile .inventory-list {
+    margin-top: 15px;
+}
+
+.wp-block-cyoa-character-profile .inventory-item {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+}
+
+/* Editor Styles */
+.block-editor-block-list__block .wp-block-cyoa-character-profile {
+    border: 2px dashed #0073aa;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-style: italic;
+    color: #666;
+}
+
+.wp-block-cyoa-character-profile::before {
+    content: '🎭 Character Profile';
+    display: block;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #0073aa;
+}
