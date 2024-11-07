@@ -210,6 +210,8 @@ function wp_character_builder_character_shortcode() {
         <?php endif; ?>
     </div>
     <?php
+
+   do_action('iasb_character_profile');
     return ob_get_clean();
 }
 add_shortcode('cyoa_character_builder', 'wp_character_builder_character_shortcode');
@@ -233,3 +235,83 @@ function wp_character_builder_enqueue_block_editor_assets() {
 }
 add_action( 'enqueue_block_editor_assets', 'wp_character_builder_enqueue_block_editor_assets' );
 
+// Add Shortcode to Display Character Profile
+function wp_character_builder_display_profile_shortcode() {
+    if (!is_user_logged_in()) {
+        return '<p>You must be logged in to view your character profile.</p>';
+    }
+
+    $user_id = get_current_user_id();
+    $character = get_user_meta($user_id, 'adventure_game_character', true);
+
+    if (!$character) {
+        return '<p>No character profile found. Please create your character first.</p>';
+    }
+
+    // Get the associated story ID (you may need to adjust this based on how you're storing this information)
+    $story_id = get_user_meta($user_id, 'associated_story', true);
+    $quests = maybe_unserialize(get_user_meta($user_id, 'quest_progress', true));
+    // Initialize the State Manager
+    if (class_exists('IASB_State_Manager')) {
+        $state_manager = new IASB_State_Manager($user_id, $story_id, 'default_character');
+        $user_id = get_current_user_id();
+        $story_id = get_the_ID();
+        $inventory = $state_manager->get_inventory();
+    } else {
+        $inventory = [];
+    }
+
+    ob_start();
+    ?>
+    <div class="character-profile-container">
+        <h2>Character Profile</h2>
+        <p><strong>Name:</strong> <?php echo esc_html($character['Name']); ?></p>
+        <p><strong>Race:</strong> <?php echo esc_html($character['Race']); ?></p>
+        <p><strong>Class:</strong> <?php echo esc_html($character['Class']); ?></p>
+        
+        <h3>Attributes</h3>
+        <ul>
+            <?php foreach ($character['Attributes'] as $attribute => $value): ?>
+                <li><strong><?php echo esc_html($attribute); ?>:</strong> <?php echo esc_html($value); ?></li>
+            <?php endforeach; ?>
+        </ul>
+        
+        <h3>Skills</h3>
+        <ul>
+            <?php foreach ($character['Skills'] as $skill): ?>
+                <li><?php echo esc_html($skill); ?></li>
+            <?php endforeach; ?>
+        </ul>
+        
+        <h3>Inventory</h3>
+        <?php 
+        if (!empty($inventory)): ?>
+            <ul>
+            <?php foreach ($inventory as $item => $quantity): ?>
+                <li><?php echo esc_html($item); ?>: <?php echo esc_html($quantity); ?></li>
+            <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>Your inventory is empty.</p>
+        <?php endif; ?>
+        <h3>Quests</h3>
+        <?php 
+       
+        if (!empty($quests)): ?>
+            <ul>
+                <?php foreach ($quests as $quest => $progress): ?>
+                    <li><?php echo esc_html($quest); ?>: <?php echo esc_html($progress); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>You have no active quests.</p>
+        <?php endif; ?>
+        
+        <h3>Backstory</h3>
+        <p><?php echo nl2br(esc_html($character['Backstory'])); ?></p>
+    </div>
+    <?php
+    
+    return ob_get_clean();
+}
+add_shortcode('cyoa_character_profile', 'wp_character_builder_display_profile_shortcode');
