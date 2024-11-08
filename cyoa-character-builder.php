@@ -52,6 +52,12 @@ function wp_cyoa_character_builder_plugin_auto_update() {
 }
 add_action( 'init', 'wp_cyoa_character_builder_plugin_auto_update' );
 
+require_once plugin_dir_path(__FILE__) . 'includes/class-character-profile.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-inventory-manager.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-state-manager.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-quest-manager.php';
+require_once plugin_dir_path(__FILE__) . 'includes/shortcodes.php';
+
 // Enqueue Styles
 function wp_character_builder_enqueue_styles() {
     wp_enqueue_style('character-builder-styles', plugin_dir_url(__FILE__) . 'character-builder.css');
@@ -333,3 +339,27 @@ function wp_character_builder_display_profile_shortcode() {
     return '<div class="wp-block-cyoa-character-profile">' . $output . '</div>';
 }
 add_shortcode('cyoa_character_profile', 'wp_character_builder_display_profile_shortcode');
+
+
+add_action('rest_api_init', function () {
+    register_rest_route('iasb/v1', '/inventory', array(
+        'methods' => 'GET',
+        'callback' => 'iasb_get_inventory',
+        'permission_callback' => function() {
+            return current_user_can('edit_posts');
+        }
+    ));
+});
+
+function iasb_get_inventory() {
+    $user_id = get_current_user_id();
+    $state_manager = new IASB_State_Manager($user_id, get_the_ID(), 'default_character');
+    $inventory = $state_manager->get_inventory();
+    
+    // Convert associative array to array of objects
+    $formatted_inventory = array_map(function($name, $quantity) {
+        return array('name' => $name, 'quantity' => $quantity);
+    }, array_keys($inventory), $inventory);
+    
+    return $formatted_inventory;
+}
