@@ -220,6 +220,57 @@ function iasb_render_inventory_block() {
 }
 add_shortcode('display_inventory', 'iasb_render_inventory_block');
 
+function iasb_add_to_inventory($atts) {
+    $atts = shortcode_atts(array(
+        'item' => '',
+        'quantity' => 1,
+    ), $atts);
+
+    if (empty($atts['item'])) {
+        return __('Error: No item specified.', 'story-builder');
+    }
+
+    $user_id = get_current_user_id();
+    $story_id = get_the_ID();
+    $transient_name = 'iasb_inventory_added_' . $user_id . '_' . $story_id . '_' . sanitize_title($atts['item']);
+
+    // Check if the shortcode has already been executed for this item
+    if (get_transient($transient_name)) {
+        return ''; // Return empty if already executed
+    }
+
+    $character_id = 'default_character';
+    $state_manager = new CYOA_State_Manager($user_id, $story_id, $character_id);
+    
+    // Add item to inventory
+    $state_manager->add_to_global_inventory($atts['item'], $atts['quantity']);
+
+    // Set the transient to indicate the shortcode has been executed for this item
+    set_transient($transient_name, true, 30 * MINUTE_IN_SECONDS); // Expires after 30 minutes
+
+    // Return a message
+    return sprintf(__('Added %d %s to your inventory.', 'story-builder'), $atts['quantity'], $atts['item']);
+}
+add_shortcode('add_to_inventory', 'iasb_add_to_inventory');
+
+function iasb_render_add_to_inventory_block($attributes) {
+    $item = $attributes['item'] ?? '';
+    $quantity = $attributes['quantity'] ?? 1;
+    
+    if (empty($item)) {
+        return 'Error: No item specified.';
+    }
+
+    $user_id = get_current_user_id();
+    $story_id = get_the_ID();
+    $character_id = 'default_character'; // Replace with the appropriate character ID
+    $state_manager = new CYOA_State_Manager($user_id, $story_id, $character_id);
+    
+    $state_manager->update_inventory($item, $quantity, 'add');
+    
+    return 'Added ' . $quantity . ' ' . $item . '(s) to your inventory.';
+}
+
 /* Gutenberg Blocks */
 // Register Gutenberg blocks
 function iasb_character_builder_register_gutenberg_blocks() {

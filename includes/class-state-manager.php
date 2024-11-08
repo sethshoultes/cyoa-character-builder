@@ -5,6 +5,7 @@ class CYOA_State_Manager {
     private $story_id;
     private $state;
     private $character_data;
+    private $quest_manager;
     //private $character_id;
     
 
@@ -13,6 +14,7 @@ class CYOA_State_Manager {
         $this->story_id = $story_id;
         $this->state = $this->get_story_state();
         $this->character_data = $this->get_character_data();
+        $this->quest_manager = new CYOA_Quest_Manager($user_id, $story_id);
        // $this->character_id = $character_id;
         // Add debug output
         //error_log("State loaded in constructor: " . print_r($this->state, true));
@@ -170,7 +172,15 @@ class CYOA_State_Manager {
     }
 
     public function add_to_inventory($item, $quantity = 1) {
-        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
+        $user_id = $this->user_id;
+        $transient_name = 'iasb_inventory_update_' . $user_id . '_' . sanitize_title($item);
+    
+        // Check if the inventory update has already been performed recently
+        if (get_transient($transient_name)) {
+            return; // Exit if the update was already performed
+        }
+    
+        $user_state = get_user_meta($user_id, 'iasb_user_state', true) ?: array();
         
         if (!isset($user_state['global_inventory'])) {
             $user_state['global_inventory'] = array();
@@ -181,7 +191,10 @@ class CYOA_State_Manager {
         }
         $user_state['global_inventory'][$item] += intval($quantity);
         
-        update_user_meta($this->user_id, 'iasb_user_state', $user_state);
+        update_user_meta($user_id, 'iasb_user_state', $user_state);
+    
+        // Set a transient to prevent multiple updates
+        set_transient($transient_name, true, 5 * MINUTE_IN_SECONDS); // Prevents updates for 5 minutes
     }
 
     public function remove_from_inventory($item, $quantity = 1) {
