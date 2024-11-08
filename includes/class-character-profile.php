@@ -7,11 +7,11 @@ class CYOA_Character_Profile {
     private $user_id;
     private $story_id;
 
-    public function __construct($user_id, $story_id) {
+    public function __construct($user_id, $story_id, $character_id) {
         $this->user_id = $user_id;
         $this->story_id = $story_id;
         $this->inventory_manager = new CYOA_Inventory_Manager($user_id, $story_id);
-        $this->state_manager = new CYOA_State_Manager($user_id, $story_id);
+        $this->state_manager = new CYOA_State_Manager($user_id, $story_id, $character_id);
         $this->quest_manager = new CYOA_Quest_Manager($user_id, $story_id);
     }
 

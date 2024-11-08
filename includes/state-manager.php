@@ -1,6 +1,7 @@
 <?php
-// In class-state-manager.php
-class CYOA_State_Manager {
+// app/public/wp-content/plugins/cyoa-interactive-story-builder/includes/state-manager.php
+
+class IASB_State_Manager {
     private $user_id;
     private $story_id;
     private $state;
@@ -372,9 +373,31 @@ class CYOA_State_Manager {
         $this->save_state($this->state);
     }
 
+    // Update quest progress
+    public function update_quest_progress($quest_id, $progress) {
+        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
+        if (!isset($user_state['quests'])) {
+            $user_state['quests'] = array();
+        }
+        $user_state['quests'][$quest_id] = $progress;
+        update_user_meta($this->user_id, 'iasb_user_state', $user_state);
+    }
     
-    
+    // Get quest progress
+    // Get quest progress
+    public function get_quest_progress($quest_id) {
+        $quest_progress = $this->state['quests'] ?? [];
 
+        if (is_array($quest_progress)) {
+            if (is_string($quest_id)) {
+                return isset($quest_progress[$quest_id]) ? $quest_progress[$quest_id] : 'Not started';
+            } else {
+                return 'Error: Quest ID must be a string';
+            }
+        } else {
+            return 'Error: Quest progress is not an array';
+        }
+    }
     // Check path availability
     public function check_path_availability($path_id) {
         // Implement logic to check if a path is available based on state
@@ -417,5 +440,110 @@ class CYOA_State_Manager {
     // Add more methods as needed for managing inventory, flags, relationships, stats, etc.
 }
 
+/**
+ * Displays character profile data (inventory, quests, etc.) on the character profile page.
+ *
+ * This function assumes that it is called on the character profile page, and that the character ID is accessible via get_the_ID().
+ * It also assumes that the associated story ID is stored in a post meta field called "associated_story".
+ *
+ * @since 1.0.0
+ */
+function iasb_display_character_profile_data() {
+   // error_log('iasb_display_character_profile_data function called');
+    $character_id = get_the_ID();
+    $user_id = get_current_user_id();
+    $user_state = get_user_meta($user_id, 'iasb_user_state', true) ?: array();
+    $story_id = get_post_meta($character_id, 'associated_story', true);
+    //error_log("User ID: $user_id, Story ID: $story_id, Character ID: $character_id");
+
+    $state_manager = new IASB_State_Manager($user_id, $story_id, $character_id);
+    $character_state = $state_manager->get_character_state();
+   // error_log('Character state: ' . print_r($character_state, true));
+    
+    echo '<h2>Character Data</h2>';
+
+    // Display Inventory section
+    echo '<h3>Inventory</h3>';
+
+    $global_inventory = isset($user_state['global_inventory']) ? $user_state['global_inventory'] : array();
+
+    if (is_array($global_inventory) && !empty($global_inventory)) {
+        echo '<ul>';
+        foreach ($global_inventory as $item => $quantity) {
+            if (is_array($quantity)) {
+                $total_quantity = array_sum($quantity);
+                echo "<li>" . esc_html($item) . ": " . esc_html($total_quantity) . "</li>";
+            } else {
+                echo "<li>" . esc_html($item) . ": " . esc_html($quantity) . "</li>";
+            }
+        }
+        echo '</ul>';
+    } else {
+        echo '<p>Your inventory is empty.</p>';
+    }
+    
+    // Display Character Stats
+    echo '<h3>Character Stats</h3>';
+    if (isset($user_state['variables']) && is_array($user_state['variables']) && !empty($user_state['variables'])) {
+        echo '<ul>';
+        foreach ($user_state['variables'] as $stat => $value) {
+            echo "<li>" . ucfirst(esc_html($stat)) . ": " . esc_html($value) . "</li>";
+        }
+        echo '</ul>';
+    } else {
+        echo '<p>No character stats available.</p>';
+    }
+
+    // Display Quests
+    echo '<h3>Quests</h3>';
+    if (isset($user_state['quests']) && is_array($user_state['quests']) && !empty($user_state['quests'])) {
+        echo '<ul>';
+        foreach ($user_state['quests'] as $quest => $status) {
+            echo "<li>" . ucfirst(esc_html($quest)) . ": " . esc_html($status) . "</li>";
+        }
+        echo '</ul>';
+    } else {
+        echo '<p>No active quests.</p>';
+    }
+
+    
+    // Display Other State Data
+    echo '<h3>Other Information</h3>';
+    $other_keys = ['inventory', 'variables', 'strength', 'quests'];
+    $other_data = array_diff_key($character_state, array_flip($other_keys));
+    if (!empty($other_data)) {
+        foreach ($other_data as $key => $value) {
+            if (is_array($value) && !empty($value)) {
+                echo "<h4>" . ucfirst($key) . "</h4><ul>";
+                foreach ($value as $subkey => $subvalue) {
+                    if (is_array($subvalue)) {
+                        echo "<li>$subkey: " . json_encode($subvalue) . "</li>";
+                    } else {
+                        echo "<li>$subkey: $subvalue</li>";
+                    }
+                }
+                echo "</ul>";
+            } elseif (!is_array($value) && !empty($value)) {
+                echo "<p><strong>" . ucfirst($key) . ":</strong> $value</p>";
+            }
+        }
+    } else {
+        echo '<p>No additional information available.</p>';
+    }
+    $state_manager->debug_state();
+}
+
+// Hook this function to display on the character profile
+add_action('iasb_character_profile', 'iasb_display_character_profile_data');
 
 
+
+
+function iasb_get_state_manager($user_id, $story_id, $character_id) {
+    static $instances = [];
+    $key = $user_id . '_' . $story_id;
+    if (!isset($instances[$key])) {
+        $instances[$key] = new IASB_State_Manager($user_id, $story_id, $character_id);
+    }
+    return $instances[$key];
+}

@@ -25,8 +25,36 @@ class CYOA_Quest_Manager {
         // Implementation for retrieving all completed quests
     }
 
-    public function update_quest_progress($quest_id, $progress) {
-        // Implementation for updating the progress of a specific quest
+   // Update quest progress
+   public function update_quest_progress($quest_id, $progress) {
+        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
+        if (!isset($user_state['quests'])) {
+            $user_state['quests'] = array();
+        }
+        $user_state['quests'][$quest_id] = $progress;
+        update_user_meta($this->user_id, 'iasb_user_state', $user_state);
+    }
+
+    // Get quest progress
+    // Get quest progress
+    public function get_quest_progress($quest_id) {
+        $quest_progress = $this->state['quests'] ?? [];
+
+        if (is_array($quest_progress)) {
+            if (is_string($quest_id)) {
+                return isset($quest_progress[$quest_id]) ? $quest_progress[$quest_id] : 'Not started';
+            } else {
+                return 'Error: Quest ID must be a string';
+            }
+        } else {
+            return 'Error: Quest progress is not an array';
+        }
+    }
+
+    // Get all quest progress
+    public function get_all_quest_progress() {
+        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
+        return isset($user_state['quests']) ? $user_state['quests'] : array();
     }
 
     // Add more methods as needed
