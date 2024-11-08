@@ -1,4 +1,126 @@
 <?php
+/**
+ * CYOA Character Builder Shortcodes
+ * 
+ * This file contains all the shortcodes used in the CYOA Character Builder plugin.
+ * Below is a list of available shortcodes and their usage:
+ *
+ * [conditional_content]
+ * Description: Displays content based on user's current story progress.
+ * Usage: [conditional_content condition="state_variable('example') > 5"]Content to show[/conditional_content]
+ * Parameters:
+ *   - condition: The condition to evaluate (required)
+ *   - id: The post ID to check against (optional, defaults to current post)
+ *
+ * [state_variable]
+ * Description: Displays the value of a state variable.
+ * Usage: [state_variable name="example"]
+ * Parameters:
+ *   - name: The name of the state variable (required)
+ *
+ * [character_attribute]
+ * Description: Displays the value of a character attribute.
+ * Usage: [character_attribute name="strength"]
+ * Parameters:
+ *   - name: The name of the character attribute (required)
+ *
+ * [dynamic_content]
+ * Description: Injects dynamic content based on the specified type and ID.
+ * Usage: [dynamic_content type="text" id="123"]
+ * Parameters:
+ *   - type: The type of content (text, image, link, video) (required)
+ *   - id: The ID of the content (e.g., post ID, attachment ID) (required)
+ *   - class: Additional CSS classes (optional)
+ *   - title: Title attribute for images (optional)
+ *   - target: Link target for links (optional, defaults to "_self")
+ *
+ * [debug_state]
+ * Description: Displays debug information about the current state (for development use).
+ * Usage: [debug_state]
+ * Parameters: None
+ *
+ * [test_shortcode]
+ * Description: A test shortcode to check if shortcodes are working.
+ * Usage: [test_shortcode]
+ * Parameters: None
+ *
+ * [update_quest_progress]
+ * Description: Updates the progress of a specified quest.
+ * Usage: [update_quest_progress quest="quest_name" status="completed"]
+ * Parameters:
+ *   - quest: The name of the quest (required)
+ *   - status: The new status of the quest (required)
+ *
+ * [display_quest_progress]
+ * Description: Displays the progress of a specified quest.
+ * Usage: [display_quest_progress quest="quest_name"]
+ * Parameters:
+ *   - quest: The name of the quest (required)
+ *
+ * [quest_progress_condition]
+ * Description: Conditionally displays content based on quest progress.
+ * Usage: [quest_progress_condition quest="quest_name" status="completed"]Content to show[/quest_progress_condition]
+ * Parameters:
+ *   - quest: The name of the quest (required)
+ *   - status: The status to check against (required)
+ */
+
+
+ /* Conditional Content Based on User Progress */
+// Shortcode to display content based on user's current story progress
+function iasb_conditional_content_shortcode($atts, $content = null) {
+    $atts = shortcode_atts([
+        'id' => get_the_ID(),
+        'condition' => '',
+        'content' => '',
+    ], $atts, 'conditional_content');
+
+    if (empty($content) && !empty($atts['content'])) {
+        $content = $atts['content'];
+    }
+
+    if (empty($content) || empty($atts['condition'])) {
+        return '';
+    }
+
+    $user_id = get_current_user_id();
+    $story_id = get_the_ID();
+    $character_id = 'default_character';
+    $state_manager = new CYOA_State_Manager($user_id, $story_id, $character_id);
+    
+    $condition = html_entity_decode(str_replace(array('"', '"'), '"', $atts['condition']), ENT_QUOTES);
+
+    if ($state_manager->evaluate_complex_condition($condition)) {
+        return do_shortcode($content);
+    }
+
+    return '';
+}
+add_shortcode('conditional_content', 'iasb_conditional_content_shortcode');
+function iasb_render_conditional_content_block($attributes, $content) {
+    // error_log('iasb_render_conditional_content_block called with: ' . print_r($attributes, true));
+     $shortcode_str = '[conditional_content';
+     if (isset($attributes['id'])) {
+         $shortcode_str .= ' id="' . esc_attr($attributes['id']) . '"';
+     }
+     if (isset($attributes['condition'])) {
+         $shortcode_str .= ' condition="' . esc_attr($attributes['condition']) . '"';
+     }
+     $shortcode_str .= ']' . ($attributes['content'] ?? '') . '[/conditional_content]';
+     //error_log('Generated shortcode: ' . $shortcode_str);
+     return do_shortcode($shortcode_str);
+ }
+ function iasb_register_conditional_content_block() {
+    register_block_type('iasb/conditional-content', array(
+        'attributes' => array(
+            'id' => array('type' => 'number'),
+            'condition' => array('type' => 'string'),
+            'content' => array('type' => 'string'),
+        ),
+        'render_callback' => 'iasb_render_conditional_content_block',
+    ));
+}
+add_action('init', 'iasb_register_conditional_content_block');
 /* State Shortcodes */
 // Shortcode for displaying state variables
 function iasb_state_variable_shortcode($atts) {
@@ -279,11 +401,21 @@ function iasb_character_builder_register_gutenberg_blocks() {
         return;
     }
 
-    // Register Resume Reading block
+    // Register Inventory Display block
     register_block_type('iasb/inventory-display', array(
         'editor_script' => 'iasb-inventory-display-editor',
         'editor_style' => 'iasb-inventory-display-editor',
         'render_callback' => 'iasb_render_inventory_block',
+    ));
+
+     // Conditional Content block
+     register_block_type('iasb/conditional-content', array(
+        'attributes' => array(
+            //'id' => array('type' => 'number'),
+            'condition' => array('type' => 'string'),
+            'content' => array('type' => 'string'),
+        ),
+        'render_callback' => 'iasb_conditional_content_shortcode',
     ));
 
     // State Variable block
@@ -294,15 +426,15 @@ function iasb_character_builder_register_gutenberg_blocks() {
         'render_callback' => 'iasb_state_variable_shortcode',
     ));
 
-    // Update State block
-    register_block_type('iasb/update-state', array(
+    // Character Attribute block
+    register_block_type('iasb/character-attribute', array(
         'attributes' => array(
-            'action' => array('type' => 'string'),
-            'value' => array('type' => 'string'),
+            'name' => array('type' => 'string'),
         ),
-        'render_callback' => 'iasb_update_state_shortcode',
+        'render_callback' => 'iasb_character_attribute_shortcode',
     ));
 
+    // Add to Inventory block
     register_block_type('iasb/add-to-inventory', array(
         'attributes' => array(
             'item' => array('type' => 'string'),
