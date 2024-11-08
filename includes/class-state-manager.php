@@ -147,12 +147,7 @@ class CYOA_State_Manager {
     public function get_state_variable($name) {
         return $this->state['variables'][$name] ?? '';
     }
-    
-    // Get character attribute
-    public function get_character_attribute($name) {
-        $name = strtolower($name);
-        return $this->character_data['Attributes'][$name] ?? '';
-    }
+ 
 
     public function get_all_state_variables() {
         $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
@@ -197,17 +192,7 @@ class CYOA_State_Manager {
         set_transient($transient_name, true, 5 * MINUTE_IN_SECONDS); // Prevents updates for 5 minutes
     }
 
-    public function remove_from_inventory($item, $quantity = 1) {
-        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
-        
-        if (isset($user_state['global_inventory'][$item])) {
-            $user_state['global_inventory'][$item] = max(0, $user_state['global_inventory'][$item] - intval($quantity));
-            if ($user_state['global_inventory'][$item] == 0) {
-                unset($user_state['global_inventory'][$item]);
-            }
-            update_user_meta($this->user_id, 'iasb_user_state', $user_state);
-        }
-    }
+
 
     private function safe_evaluate($condition) {
         $parts = preg_split('/(\&\&|\|\|)/', $condition, -1, PREG_SPLIT_DELIM_CAPTURE);
@@ -293,17 +278,14 @@ class CYOA_State_Manager {
             return isset($context[$var]) ? $context[$var] : null;
         }
     }
+    
 
     // Get all variables
     public function get_all_variables() {
         return $this->state['variables'] ?? [];
     }
 
-    // Get all quest progress
-    public function get_all_quest_progress() {
-        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
-        return isset($user_state['quests']) ? $user_state['quests'] : array();
-    }
+
 
     public function update_state($action, $value) {
         // Parse the action and update the state accordingly
@@ -331,13 +313,7 @@ class CYOA_State_Manager {
         // Add debug output
         //error_log("State updated: " . print_r($this->state['variables'], true));
     }
-    
-    //  Update character attributes
-    public function update_character_attribute($attribute, $value) {
-        $attribute = strtolower($attribute);
-        $this->character_data['Attributes'][$attribute] = $value;
-        update_user_meta($this->user_id, 'adventure_game_character', $this->character_data);
-    }
+
 
     
     // Update inventory
@@ -385,30 +361,6 @@ class CYOA_State_Manager {
         $this->save_state($this->state);
     }
 
-    
-    
-
-    // Check path availability
-    public function check_path_availability($path_id) {
-        // Implement logic to check if a path is available based on state
-        // This is a placeholder and should be customized based on your requirements
-        return true;
-    }
-
-    // Apply choice consequences
-    public function apply_choice_consequences($choice_id) {
-        // Implement logic to update state based on user choices
-        // This is a placeholder and should be customized based on your requirements
-        $this->state['choices_made'][] = $choice_id;
-        $this->save_state($this->state);
-    }
-
-    // Process conditional content
-    public function process_conditional_content($content) {
-        // Implement logic to modify content based on state conditions
-        // This is a placeholder and should be customized based on your requirements
-        return $content;
-    }
 
     public function get_character_state() {
         $state = array(
@@ -425,6 +377,11 @@ class CYOA_State_Manager {
         //error_log("Debug - Raw state from database: " . print_r($raw_state, true));
         $parsed_state = maybe_unserialize($raw_state);
         //error_log("Debug - Parsed state: " . print_r($parsed_state, true));
+    }
+
+    // Get all quest progress
+    public function get_all_quest_progress() {
+        return $this->quest_manager->get_all_quest_progress();
     }
 
     // Add more methods as needed for managing inventory, flags, relationships, stats, etc.

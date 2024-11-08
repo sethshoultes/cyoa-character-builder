@@ -182,7 +182,7 @@ function iasb_remove_from_inventory($atts) {
     }
 
     $character_id = 'default_character';
-    $state_manager = new CYOA_State_Manager($user_id, $story_id, $character_id);
+    $state_manager = new CYOA_Inventory_Manager($user_id, $story_id);
     
     // Remove item from inventory
     $removed = $state_manager->remove_from_inventory($atts['item'], $atts['quantity']) !== false;
