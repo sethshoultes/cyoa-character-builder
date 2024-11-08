@@ -17,6 +17,37 @@ class CYOA_Inventory_Manager {
     public function remove_item($item_id, $quantity = 1) {
         // Implementation for removing an item from the inventory
     }
+    public function remove_from_inventory($item, $quantity = 1) {
+        $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
+        
+        if (isset($user_state['global_inventory'][$item])) {
+            $user_state['global_inventory'][$item] = max(0, $user_state['global_inventory'][$item] - intval($quantity));
+            if ($user_state['global_inventory'][$item] == 0) {
+                unset($user_state['global_inventory'][$item]);
+            }
+            update_user_meta($this->user_id, 'iasb_user_state', $user_state);
+        }
+    }
+
+    // Update inventory
+    public function update_inventory($item, $quantity = 1, $operation = 'add') {
+        $user_id = get_current_user_id();
+        $inventory = get_user_meta($user_id, 'iasb_inventory', true);
+        if (!is_array($inventory)) {
+            $inventory = array();
+        }
+
+        if ($operation === 'add') {
+            $inventory[$item] = ($inventory[$item] ?? 0) + $quantity;
+        } elseif ($operation === 'remove') {
+            $inventory[$item] = max(0, ($inventory[$item] ?? 0) - $quantity);
+            if ($inventory[$item] == 0) {
+                unset($inventory[$item]);
+            }
+        }
+
+        update_user_meta($user_id, 'iasb_inventory', $inventory);
+    }
 
     public function get_inventory() {
         // Implementation for retrieving the entire inventory

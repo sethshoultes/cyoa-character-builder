@@ -9,22 +9,6 @@ class CYOA_Quest_Manager {
         $this->story_id = $story_id;
     }
 
-    public function start_quest($quest_id) {
-        // Implementation for starting a new quest
-    }
-
-    public function complete_quest($quest_id) {
-        // Implementation for completing a quest
-    }
-
-    public function get_active_quests() {
-        // Implementation for retrieving all active quests
-    }
-
-    public function get_completed_quests() {
-        // Implementation for retrieving all completed quests
-    }
-
    // Update quest progress
    public function update_quest_progress($quest_id, $progress) {
         $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
@@ -35,7 +19,6 @@ class CYOA_Quest_Manager {
         update_user_meta($this->user_id, 'iasb_user_state', $user_state);
     }
 
-    // Get quest progress
     // Get quest progress
     public function get_quest_progress($quest_id) {
         $quest_progress = $this->state['quests'] ?? [];
@@ -50,11 +33,39 @@ class CYOA_Quest_Manager {
             return 'Error: Quest progress is not an array';
         }
     }
+    public function get_character_state() {
+        $state = array(
+            'inventory' => $this->state['inventory'] ?? [],
+            'quests' => $this->get_all_quest_progress(),
+            // Add other relevant state data here
+        );
+        //error_log('Character state in get_character_state: ' . print_r($state, true));
+        return $state;
+    }
 
     // Get all quest progress
     public function get_all_quest_progress() {
         $user_state = get_user_meta($this->user_id, 'iasb_user_state', true) ?: array();
         return isset($user_state['quests']) ? $user_state['quests'] : array();
+    }
+
+
+
+
+    public function start_quest($quest_id) {
+        // Implementation for starting a new quest
+    }
+
+    public function complete_quest($quest_id) {
+        // Implementation for completing a quest
+    }
+
+    public function get_active_quests() {
+        // Implementation for retrieving all active quests
+    }
+
+    public function get_completed_quests() {
+        // Implementation for retrieving all completed quests
     }
 
     // Add more methods as needed
