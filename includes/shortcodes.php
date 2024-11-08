@@ -311,8 +311,5 @@ function iasb_character_builder_register_gutenberg_blocks() {
         'render_callback' => 'iasb_render_add_to_inventory_block',
     ));
 
-    register_block_type('iasb/inventory-display', array(
-        'render_callback' => 'iasb_render_inventory_block',
-    ));
 }
 add_action('init', 'iasb_character_builder_register_gutenberg_blocks');
