@@ -3,7 +3,7 @@
 Plugin Name: CYOA Character Builder
 Plugin URI: https://github.com/sethshoultes/cyoa-character-builder
 Description: A character builder for CYOA Adventure Game and CYOA Interactive Story Builder. Use [cyoa_character_builder] to build and manage your character.
-Version: 1.0.1
+Version: 1.0.2
 Author: Seth Shoultes
 Author URI: https://adventurebuildr.com/
 License: GPL2
