@@ -110,17 +110,6 @@ function iasb_render_conditional_content_block($attributes, $content) {
      //error_log('Generated shortcode: ' . $shortcode_str);
      return do_shortcode($shortcode_str);
  }
- function iasb_register_conditional_content_block() {
-    register_block_type('iasb/conditional-content', array(
-        'attributes' => array(
-            'id' => array('type' => 'number'),
-            'condition' => array('type' => 'string'),
-            'content' => array('type' => 'string'),
-        ),
-        'render_callback' => 'iasb_render_conditional_content_block',
-    ));
-}
-add_action('init', 'iasb_register_conditional_content_block');
 /* State Shortcodes */
 // Shortcode for displaying state variables
 function iasb_state_variable_shortcode($atts) {
